@@ -1,0 +1,13 @@
+numpy<2
+torch>=2.2,<2.6
+transformers>=4.44,<4.50
+sentence-transformers>=3.0,<4
+faiss-cpu
+rank-bm25
+pypdf
+requests
+anthropic
+tqdm
+ipykernel
+pandas
+matplotlib

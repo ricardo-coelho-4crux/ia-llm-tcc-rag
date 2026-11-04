@@ -1,0 +1,96 @@
+{
+ "corpus": {
+  "pdfs_baixados": 428,
+  "campos_distintos": 428,
+  "tamanho_pdfs_mb": 240.8,
+  "paginas_com_texto": 907,
+  "paginas_por_pdf_media": 2.12,
+  "caracteres_total": 1152447,
+  "tokens_estimados_total": 288111,
+  "pdfs_sem_texto_ocr": 0,
+  "chunks": 1693,
+  "chunks_por_pdf_media": 3.96,
+  "chunk_chars_media": 733.5,
+  "chunk_chars_mediana": 803.0,
+  "chunk_chars_max": 1138,
+  "chunks_duplicados_pct": 0.71,
+  "embedding_modelo": "intfloat/multilingual-e5-small",
+  "embedding_dim": 384,
+  "indice_faiss_vetores": 1693,
+  "indice_faiss_mb": 2.6
+ },
+ "testes": {
+  "total": 13,
+  "passaram": 13
+ },
+ "gabarito": {
+  "perguntas": 1000,
+  "por_tipo": {
+   "inicio": 179,
+   "estado": 204,
+   "operador": 219,
+   "bacia": 189,
+   "fluido": 209
+  },
+  "top_k": 6
+ },
+ "retrieval": {
+  "Denso (sem filtro)": {
+   "Hit@1": 0.567,
+   "Hit@3": 0.886,
+   "Hit@6": 0.971,
+   "Precision@6": 0.1618,
+   "Recall@6": 0.9705,
+   "MRR": 0.7296,
+   "nDCG@6": 0.7902,
+   "Campo correto@1": 0.948,
+   "Latência p50 (ms)": 6.5118,
+   "Latência p95 (ms)": 12.7521
+  },
+  "BM25 (sem filtro)": {
+   "Hit@1": 0.617,
+   "Hit@3": 0.892,
+   "Hit@6": 0.96,
+   "Precision@6": 0.16,
+   "Recall@6": 0.9595,
+   "MRR": 0.7557,
+   "nDCG@6": 0.807,
+   "Campo correto@1": 0.844,
+   "Latência p50 (ms)": 9.0536,
+   "Latência p95 (ms)": 10.5993
+  },
+  "Híbrido RRF (sem filtro)": {
+   "Hit@1": 0.597,
+   "Hit@3": 0.933,
+   "Hit@6": 0.98,
+   "Precision@6": 0.1635,
+   "Recall@6": 0.98,
+   "MRR": 0.7649,
+   "nDCG@6": 0.8199,
+   "Campo correto@1": 0.94,
+   "Latência p50 (ms)": 8.6821,
+   "Latência p95 (ms)": 10.0701
+  },
+  "Híbrido + filtro campo": {
+   "Hit@1": 0.615,
+   "Hit@3": 0.976,
+   "Hit@6": 1.0,
+   "Precision@6": 0.1668,
+   "Recall@6": 1.0,
+   "MRR": 0.789,
+   "nDCG@6": 0.8433,
+   "Campo correto@1": 1.0,
+   "Latência p50 (ms)": 9.1604,
+   "Latência p95 (ms)": 11.2375
+  }
+ },
+ "geracao": {
+  "amostra": 40,
+  "correcao": 1.0,
+  "taxa_citacao": 1.0,
+  "fidelidade": 0.975,
+  "relevancia_resposta": 0.975,
+  "abstencao_correta": 1.0,
+  "n_abstencao": 5
+ }
+}

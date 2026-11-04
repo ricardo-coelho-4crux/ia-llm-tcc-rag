@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Fluxo completo do RAG dos Planos de Desenvolvimento da ANP",
+    "output": "docs/diagrama-sequencia-rag.html",
+    "viewBox": [1040, 1160],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "Usuário", "sublabel": "Jupyter" },
+    { "id": "nb", "type": "backend", "label": "Notebook", "sublabel": "orquestrador" },
+    { "id": "anp", "type": "external", "label": "Site ANP", "sublabel": "gov.br" },
+    { "id": "prep", "type": "backend", "label": "Pré-processo", "sublabel": "pypdf + chunking" },
+    { "id": "emb", "type": "cloud", "label": "Embedder", "sublabel": "multilingual-e5" },
+    { "id": "idx", "type": "database", "label": "Índices", "sublabel": "FAISS + BM25" },
+    { "id": "llm", "type": "cloud", "label": "Claude", "sublabel": "API Anthropic" }
+  ],
+  "segments": [
+    { "from": 150, "to": 590, "label": "Ingestão e indexação (Etapas 1–6)" },
+    { "from": 604, "to": 944, "label": "Consulta (Etapas 7–10)" },
+    { "from": 958, "to": 1060, "label": "Avaliação (Etapa 11)" }
+  ],
+  "messages": [
+    { "from": "user", "to": "nb", "y": 180, "label": "executar Etapas 1–6", "variant": "emphasis" },
+    { "from": "nb", "to": "anp", "y": 222, "label": "GET página de planos", "variant": "default" },
+    { "from": "anp", "to": "nb", "y": 264, "label": "HTML com 428 links", "variant": "return" },
+    { "from": "nb", "to": "anp", "y": 306, "label": "baixar PDFs (6 threads)", "variant": "default" },
+    { "from": "anp", "to": "nb", "y": 348, "label": "PDFs em ./planos", "variant": "return" },
+    { "from": "nb", "to": "prep", "y": 390, "label": "carregar, limpar, dividir", "variant": "emphasis" },
+    { "from": "prep", "to": "nb", "y": 432, "label": "chunks + metadados", "variant": "return" },
+    { "from": "nb", "to": "emb", "y": 474, "label": "passage: campo + chunk", "variant": "default" },
+    { "from": "emb", "to": "nb", "y": 516, "label": "vetores normalizados", "variant": "return" },
+    { "from": "nb", "to": "idx", "y": 558, "label": "indexar e persistir", "variant": "emphasis" },
+    { "from": "user", "to": "nb", "y": 634, "label": "perguntar(pergunta)", "variant": "emphasis" },
+    { "from": "nb", "to": "emb", "y": 676, "label": "query: pergunta", "variant": "default" },
+    { "from": "emb", "to": "nb", "y": 718, "label": "vetor da consulta", "variant": "return" },
+    { "from": "nb", "to": "idx", "y": 760, "label": "top-k denso + BM25 (RRF)", "variant": "emphasis" },
+    { "from": "idx", "to": "nb", "y": 802, "label": "trechos + fontes", "variant": "return" },
+    { "from": "nb", "to": "llm", "y": 844, "label": "prompt com contexto", "variant": "emphasis" },
+    { "from": "llm", "to": "nb", "y": 886, "label": "resposta com citações [n]", "variant": "return" },
+    { "from": "nb", "to": "user", "y": 928, "label": "resposta + fontes", "variant": "return" },
+    { "from": "nb", "to": "idx", "y": 988, "label": "avaliar gabarito sintético", "variant": "dashed" },
+    { "from": "idx", "to": "nb", "y": 1030, "label": "Hit@k, MRR, nDCG", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "nb", "from": 174, "to": 1036, "type": "backend" },
+    { "participant": "anp", "from": 216, "to": 354, "type": "external" },
+    { "participant": "prep", "from": 384, "to": 438, "type": "backend" },
+    { "participant": "emb", "from": 468, "to": 522, "type": "cloud" },
+    { "participant": "idx", "from": 552, "to": 564, "type": "database" },
+    { "participant": "emb", "from": 670, "to": 724, "type": "cloud" },
+    { "participant": "idx", "from": 754, "to": 808, "type": "database" },
+    { "participant": "llm", "from": 838, "to": 892, "type": "cloud" },
+    { "participant": "idx", "from": 982, "to": 1036, "type": "database" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Indexação offline", "items": ["PDFs baixados uma vez e reaproveitados", "Chunks com campo, arquivo e página", "Embeddings e índices persistidos em disco"] },
+    { "dot": "orange", "title": "Consulta híbrida", "items": ["Busca densa e BM25 fundidas por RRF", "Filtro automático quando a pergunta cita o campo", "Contexto numerado com fonte e página"] },
+    { "dot": "emerald", "title": "Geração e avaliação", "items": ["Claude responde só com o contexto e cita [n]", "Sem chave, o notebook devolve os trechos", "Métricas de retrieval e geração em JSON"] }
+  ]
+}
