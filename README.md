@@ -21,7 +21,7 @@ Este trabalho implementa, em um único Jupyter Notebook, um sistema de *Retrieva
 
 O pipeline cobre todas as etapas usuais de um RAG: aquisição dos documentos, extração de texto por página, limpeza, divisão em *chunks* com metadados (campo, arquivo e página), geração de *embeddings* com o modelo multilíngue `multilingual-e5-small`, indexação em FAISS, recuperação híbrida (busca densa e BM25 combinadas por *Reciprocal Rank Fusion*, com filtro automático quando a pergunta cita o campo), montagem do prompt com citações numeradas e geração da resposta por um LLM (Claude), com um modo extrativo quando não há chave de API.
 
-Para avaliar o sistema, foi construído automaticamente um gabarito sintético de 1.000 perguntas factuais a partir da ficha estruturada de cada sumário (operador, bacia, estado, fluido principal e início de produção). Com recuperação híbrida e filtro de campo, o trecho correto aparece entre os 6 primeiros em 100% das perguntas e em 97,6% entre os 3 primeiros, com MRR de 0,789 e latência mediana de 8,8 ms. Sem o filtro, a busca híbrida alcança Hit@6 de 98,0%. Em uma amostra de 40 perguntas, a geração com o Claude Sonnet 5.5 obteve 100% de correção e de citação das fontes, 97,5% de fidelidade ao contexto recuperado e 100% de abstenção correta em perguntas sobre campos inexistentes.
+Para avaliar o sistema, foi construído automaticamente um gabarito sintético de 1.000 perguntas factuais a partir da ficha estruturada de cada sumário (operador, bacia, estado, fluido principal e início de produção). Com recuperação híbrida e filtro de campo, o trecho correto aparece entre os 6 primeiros em 100% das perguntas e em 97,6% entre os 3 primeiros, com MRR de 0,789 e latência mediana de 8,8 ms. Sem o filtro, a busca híbrida alcança Hit@6 de 98,0%. Na geração, três modelos Claude (Sonnet 5.5, Sonnet 5 e Haiku 4.5) foram comparados nas mesmas 40 perguntas e com os mesmos trechos recuperados, com um juiz independente (Claude Opus 5.5): os três obtiveram 100% de citação das fontes, de fidelidade ao contexto, de relevância e de abstenção correta em perguntas sobre campos inexistentes. A correção foi de 100% para os dois Sonnet e de 92,5% para o Haiku, diferença que vem apenas do formato das datas ("maio de 1986" em vez de "05/1986"). O Haiku 4.5 custou cerca de 2,6 vezes menos por resposta que o Sonnet 5.5.
 
 ### Abstract
 
@@ -29,7 +29,7 @@ This work implements, in a single Jupyter Notebook, a Retrieval-Augmented Genera
 
 The pipeline covers all standard RAG stages: document acquisition, page-level text extraction, cleaning, chunking with metadata (field, file, page), embeddings with the multilingual `multilingual-e5-small` model, FAISS indexing, hybrid retrieval (dense search and BM25 fused with Reciprocal Rank Fusion, with automatic field filtering when the question names the field), prompt assembly with numbered citations, and answer generation by an LLM (Claude), with an extractive fallback when no API key is available.
 
-For evaluation, a synthetic benchmark of 1,000 factual questions was automatically built from each summary's structured data sheet (operator, basin, state, main fluid, production start). With hybrid retrieval and field filtering, the correct passage is in the top 6 for 100% of questions and in the top 3 for 97.6%, with an MRR of 0.789 and a median latency of 8.8 ms. Without the filter, hybrid search reaches Hit@6 of 98.0%. On a sample of 40 questions, generation with Claude Sonnet 5.5 achieved 100% correctness and source citation, 97.5% faithfulness to the retrieved context, and 100% correct abstention on questions about non-existent fields.
+For evaluation, a synthetic benchmark of 1,000 factual questions was automatically built from each summary's structured data sheet (operator, basin, state, main fluid, production start). With hybrid retrieval and field filtering, the correct passage is in the top 6 for 100% of questions and in the top 3 for 97.6%, with an MRR of 0.789 and a median latency of 8.8 ms. Without the filter, hybrid search reaches Hit@6 of 98.0%. For generation, three Claude models (Sonnet 5.5, Sonnet 5 and Haiku 4.5) were compared on the same 40 questions and the same retrieved passages, with an independent judge (Claude Opus 5.5): all three reached 100% source citation, faithfulness, relevance and correct abstention on questions about non-existent fields. Correctness was 100% for both Sonnet models and 92.5% for Haiku, a gap due only to date formatting ("maio de 1986" instead of "05/1986"). Haiku 4.5 cost about 2.6 times less per answer than Sonnet 5.5.
 
 ### 1. Introdução
 
@@ -135,25 +135,38 @@ Leituras e ressalvas:
 - Hit@1 de 0,615 indica que, dentro do documento certo, o chunk com a linha-resposta nem sempre é o primeiro. Como a ficha estruturada se espalha por poucos chunks, perguntas diferentes sobre o mesmo campo ativam trechos parecidos.
 - As perguntas são factuais e extraídas de um formulário. O gabarito mede recuperação de forma objetiva, mas é um proxy: perguntas analíticas (por exemplo, "como será o desenvolvimento do campo?") exigiriam julgamento humano.
 
-**Geração** (Claude Sonnet 5.5, 40 perguntas do gabarito mais 5 perguntas sobre campos inexistentes)
+**Geração: comparação entre modelos** (mesmas 40 perguntas do gabarito, mesmas 5 perguntas sobre campos inexistentes e exatamente os mesmos trechos recuperados; juiz: Claude Opus 5.5)
 
-| Métrica | Valor |
-|---|---|
-| Correção (o valor esperado aparece na resposta) | 100% |
-| Taxa de citação (a resposta cita `[n]`) | 100% |
-| Fidelidade ao contexto (LLM-juiz) | 97,5% |
-| Relevância da resposta (LLM-juiz) | 97,5% |
-| Abstenção correta em campos inexistentes (LLM-juiz, n = 5) | 100% |
+| Métrica | Sonnet 5.5 | Sonnet 5 | Haiku 4.5 |
+|---|---|---|---|
+| Correção (valor esperado na resposta, casamento exato) | 100% | 100% | 92,5% |
+| Taxa de citação (`[n]`) | 100% | 100% | 100% |
+| Fidelidade ao contexto (LLM-juiz) | 100% | 100% | 100% |
+| Relevância da resposta (LLM-juiz) | 100% | 100% | 100% |
+| Abstenção correta (LLM-juiz, n = 5) | 100% | 100% | 100% |
+| Latência média por resposta | 1,36 s | 0,89 s | 0,88 s |
+| Tokens de entrada / saída (média) | 2.306 / 87 | 2.304 / 46 | 1.867 / 49 |
+| Custo estimado por 1.000 respostas (sem o juiz) | US$ 5,48 | US$ 5,06 | US$ 2,11 |
 
-Ressalvas sobre a geração: a amostra é pequena (40 perguntas e 5 de abstenção), de modo que um erro isolado muda a métrica em 2,5 pontos. O juiz é o mesmo modelo que gera as respostas, o que tende a favorecê-lo; um juiz independente ou revisão humana tornaria a medida mais confiável. A correção é alta em boa parte porque as perguntas são factuais e o contexto recuperado quase sempre contém a resposta.
+Os dados por pergunta estão em [`geracao_por_pergunta.csv`](geracao_por_pergunta.csv).
+
+Leitura e ressalvas:
+
+- **Qualidade praticamente empatada.** Os três modelos citam as fontes, respondem dentro do contexto, respondem à pergunta e recusam perguntas sobre campos que não existem. Com o juiz independente, a fidelidade do Sonnet 5.5 foi de 100% (97,5% quando o próprio Sonnet 5.5 era o juiz, em uma execução anterior), o que sugere que aquele valor sofria algum viés de autojulgamento.
+- **A diferença de correção do Haiku é de formato, não de conteúdo.** As 3 respostas marcadas como erradas são perguntas sobre início de produção: o Haiku respondeu "maio de 1986", "maio de 1989" e "fevereiro de 1980", enquanto o gabarito esperava "05/1986", "05/1989" e "02/1980". Conferi manualmente: os valores estão certos. A métrica de casamento exato de texto não reconhece datas por extenso; normalizar datas na verificação é um ajuste a fazer.
+- **Custo e velocidade.** O Haiku 4.5 custou cerca de 2,6 vezes menos por resposta que o Sonnet 5.5 e respondeu mais rápido. O Sonnet 5.5 gerou quase o dobro de tokens de saída (87 contra 46 e 49 no Sonnet 5 e no Haiku), o que indica mais raciocínio interno por resposta, sem ganho de qualidade nesta amostra. A latência foi medida com 4 chamadas simultâneas e serve para comparar os modelos entre si, não como valor absoluto. Os preços são os de tabela e o custo do juiz não está incluído.
+- **O experimento não discrimina bem os modelos.** Com perguntas factuais curtas e contexto quase sempre suficiente, os três modelos ficam no teto da escala. A amostra é pequena (40 perguntas e 5 de abstenção, de modo que um erro isolado muda a métrica em 2,5 e em 20 pontos). Perguntas analíticas e comparativas entre campos, e um conjunto elaborado por especialistas, provavelmente separariam melhor os modelos.
+- **Há variação entre execuções.** Os modelos mais novos não aceitam alterar parâmetros de amostragem, então todos rodaram com o padrão, e uma nova execução pode diferir um pouco.
 
 ### 4. Conclusões
 
-O notebook entrega um RAG completo, do download dos 428 PDFs à avaliação, que roda do início ao fim e é verificado por testes automatizados. Em recuperação, a combinação de busca densa e lexical com filtro automático por campo foi a melhor estratégia, localizando o trecho correto entre os 3 primeiros em 97,6% das perguntas e em menos de 10 ms. O modelo `multilingual-e5-small`, pequeno e executável em CPU, foi suficiente para este corpus.
+O notebook entrega um RAG completo, do download dos 428 PDFs à avaliação, que roda do início ao fim e é verificado por testes automatizados. Em recuperação, a combinação de busca densa e lexical com filtro automático por campo foi a melhor estratégia, localizando o trecho correto entre os 3 primeiros em 97,6% das perguntas e em menos de 10 ms. O modelo `multilingual-e5-small`, pequeno e executável em CPU, foi suficiente para este corpus. Na geração, a comparação entre Claude Sonnet 5.5, Sonnet 5 e Haiku 4.5, com as mesmas perguntas, os mesmos trechos e um juiz independente, mostrou qualidade equivalente nesta tarefa: os três citam as fontes, respondem dentro do contexto e recusam perguntas sobre campos inexistentes. Como o Haiku 4.5 custa cerca de 2,6 vezes menos por resposta, ele é uma opção razoável para este tipo de consulta factual, a confirmar com perguntas mais difíceis.
 
 Limitações e próximos passos:
 
-- Ampliar a avaliação da geração: amostra maior, juiz independente do modelo gerador e um conjunto de perguntas e respostas elaborado por especialistas, incluindo perguntas analíticas e comparativas entre campos.
+- Ampliar a avaliação da geração: amostra maior e um conjunto de perguntas e respostas elaborado por especialistas, incluindo perguntas analíticas e comparativas entre campos, em que os modelos devem se separar melhor.
+- Normalizar datas (por exemplo, "maio de 1986" e "05/1986") na métrica de correção, para não penalizar respostas certas com formato diferente.
+- Comparar também outras famílias de modelos e testar variações do prompt (ablação), já que as decisões do prompt foram validadas apenas pelo resultado final.
 - Melhorar o Hit@1 com um *reranker* (cross-encoder) ou com chunks alinhados às seções da ficha.
 - Testar modelos de embedding maiores (`-base`, `-large`) e ajustar tamanho e sobreposição dos chunks.
 - Tratar PDFs escaneados com OCR caso o corpus passe a incluí-los (hoje nenhum precisa).
