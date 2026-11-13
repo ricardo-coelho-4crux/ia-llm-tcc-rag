@@ -44,8 +44,8 @@
    "MRR": 0.7296,
    "nDCG@6": 0.7902,
    "Campo correto@1": 0.948,
-   "Latência p50 (ms)": 6.5118,
-   "Latência p95 (ms)": 12.7521
+   "Latência p50 (ms)": 6.5764,
+   "Latência p95 (ms)": 13.588
   },
   "BM25 (sem filtro)": {
    "Hit@1": 0.617,
@@ -56,8 +56,8 @@
    "MRR": 0.7557,
    "nDCG@6": 0.807,
    "Campo correto@1": 0.844,
-   "Latência p50 (ms)": 9.0536,
-   "Latência p95 (ms)": 10.5993
+   "Latência p50 (ms)": 9.1144,
+   "Latência p95 (ms)": 10.6328
   },
   "Híbrido RRF (sem filtro)": {
    "Hit@1": 0.597,
@@ -68,8 +68,8 @@
    "MRR": 0.7649,
    "nDCG@6": 0.8199,
    "Campo correto@1": 0.94,
-   "Latência p50 (ms)": 8.6821,
-   "Latência p95 (ms)": 10.0701
+   "Latência p50 (ms)": 8.7123,
+   "Latência p95 (ms)": 10.6724
   },
   "Híbrido + filtro campo": {
    "Hit@1": 0.615,
@@ -80,17 +80,53 @@
    "MRR": 0.789,
    "nDCG@6": 0.8433,
    "Campo correto@1": 1.0,
-   "Latência p50 (ms)": 9.1604,
-   "Latência p95 (ms)": 11.2375
+   "Latência p50 (ms)": 8.9066,
+   "Latência p95 (ms)": 10.488
   }
  },
  "geracao": {
-  "amostra": 40,
-  "correcao": 1.0,
-  "taxa_citacao": 1.0,
-  "fidelidade": 0.975,
-  "relevancia_resposta": 0.975,
-  "abstencao_correta": 1.0,
-  "n_abstencao": 5
- }
+  "claude-sonnet-5-5": {
+   "amostra": 40,
+   "erros": 0,
+   "correcao": 1.0,
+   "taxa_citacao": 1.0,
+   "fidelidade": 1.0,
+   "relevancia_resposta": 1.0,
+   "abstencao_correta": 1.0,
+   "n_abstencao": 5,
+   "latencia_media_s": 1.3556989725038875,
+   "tokens_entrada_medio": 2305.55,
+   "tokens_saida_medio": 86.7,
+   "custo_usd_por_1000_respostas": 5.4781
+  },
+  "claude-sonnet-5": {
+   "amostra": 40,
+   "erros": 0,
+   "correcao": 1.0,
+   "taxa_citacao": 1.0,
+   "fidelidade": 1.0,
+   "relevancia_resposta": 1.0,
+   "abstencao_correta": 1.0,
+   "n_abstencao": 5,
+   "latencia_media_s": 0.8887574099979247,
+   "tokens_entrada_medio": 2303.55,
+   "tokens_saida_medio": 45.525,
+   "custo_usd_por_1000_respostas": 5.06235
+  },
+  "claude-haiku-4-5": {
+   "amostra": 40,
+   "erros": 0,
+   "correcao": 0.925,
+   "taxa_citacao": 1.0,
+   "fidelidade": 1.0,
+   "relevancia_resposta": 1.0,
+   "abstencao_correta": 1.0,
+   "n_abstencao": 5,
+   "latencia_media_s": 0.8765555449994281,
+   "tokens_entrada_medio": 1867.35,
+   "tokens_saida_medio": 49.15,
+   "custo_usd_por_1000_respostas": 2.1131
+  }
+ },
+ "juiz": "claude-opus-5-5"
 }

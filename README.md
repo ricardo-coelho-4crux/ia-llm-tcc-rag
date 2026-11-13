@@ -1,7 +1,7 @@
 # RAG sobre os Sumários Executivos dos Planos de Desenvolvimento de Campos da ANP
 
-#### Aluno: [Ricardo Coelho](https://github.com/ricardo-coelho-4crux)
-#### Orientadora: Evelyn
+#### Aluno: [Nome Sobrenome — PREENCHER](https://github.com/link_do_github)
+#### Orientadora: [Nome Sobrenome — PREENCHER](https://github.com/link_do_github)
 
 ---
 
@@ -56,6 +56,43 @@ O fluxo completo está no diagrama de sequência abaixo ([versão interativa em 
 **Recuperação híbrida.** A busca densa (similaridade de cosseno) e a busca lexical BM25 (Robertson e Zaragoza, 2009) são combinadas por *Reciprocal Rank Fusion* (Cormack et al., 2009). Se a pergunta cita o nome de um campo, o resultado é filtrado para ele; os nomes são comparados do mais longo ao mais curto, para que "Albacora Leste" vença "Albacora".
 
 **Geração.** O prompt contém os trechos numerados com campo, arquivo e página, e instrui o modelo a responder apenas com o contexto, citar `[n]` e admitir quando não encontrar a informação. Com `ANTHROPIC_API_KEY` definida (no ambiente ou em um arquivo `.env`), a resposta é gerada pelo Claude Sonnet 5.5 (`claude-sonnet-5-5`); sem a chave, o notebook devolve os trechos mais relevantes.
+
+**Prompt.** O prompt tem duas partes, definidas na Etapa 8 do notebook (`SYSTEM` e `montar_prompt`):
+
+*System prompt (fixo):*
+
+> Você é um assistente especialista em planos de desenvolvimento de campos de petróleo e gás da ANP. Responda em português, usando APENAS os trechos de contexto fornecidos. Cite as fontes no formato [n]. Se a resposta não estiver no contexto, diga que não encontrou nos documentos.
+
+*Mensagem do usuário (montada a cada pergunta), exemplo com trechos abreviados:*
+
+```text
+Contexto:
+[1] (Campo Abalone – abalone.pdf, p.1)
+ABALONE  Nº do Contrato: 48000.003552/97-11  Operador do Contrato: Shell Brasil Petróleo Ltda.
+Estado: Espírito Santo  Bacia: Campos  Localização: Mar [...]
+
+[2] (Campo Abalone – abalone.pdf, p.2)
+[...]
+
+Pergunta: Quem é o operador do contrato do campo Abalone?
+
+Resposta (com citações [n]):
+```
+
+Cada decisão tem um motivo:
+
+- **Papel e língua no system prompt.** Fixa o domínio (planos da ANP) e o idioma da resposta. Como essas regras não mudam entre perguntas, ficam separadas do conteúdo variável (trechos e pergunta), que vai na mensagem do usuário.
+- **"Usando APENAS os trechos fornecidos".** O corpus é um conjunto fechado de documentos oficiais, e o objetivo é a resposta ser rastreável a eles. Sem essa restrição, o modelo completaria lacunas com conhecimento próprio, e valores como operador, participação ou data de início de produção precisam vir do documento, não de memória do modelo.
+- **Instrução explícita de abstenção.** "Se não estiver no contexto, diga que não encontrou" dá ao modelo uma saída legítima quando a recuperação falha, em vez de inventar um valor plausível. Essa decisão é medida diretamente na métrica de abstenção correta (perguntas sobre campos inexistentes).
+- **Trechos numerados `[n]` com campo, arquivo e página.** A numeração permite citar a fonte de forma curta e verificável; os metadados deixam o modelo distinguir trechos de campos diferentes (o filtro por campo nem sempre ativa) e ajudam o leitor a abrir o PDF certo. Também torna a citação mensurável (taxa de citação).
+- **Contexto antes da pergunta, e uma linha final que induz a resposta com citações.** Colocar o material longo primeiro e a pergunta por último é a ordem recomendada para prompts com documentos, e a linha final ancora o formato esperado.
+- **Sem exemplos (*few-shot*) e sem pedir raciocínio passo a passo.** As perguntas são factuais e curtas, e os modelos usados já raciocinam internamente quando necessário. Instruções adicionais custariam tokens em todas as chamadas sem ganho evidente neste tipo de pergunta.
+- **Sem temperatura configurada.** Os modelos mais recentes não aceitam alterar parâmetros de amostragem, então todos rodam com o padrão. Por isso há alguma variação entre execuções, e as métricas de geração devem ser lidas como estimativas, não como valores exatos.
+- **`max_tokens` de 4.000.** Dá folga para o raciocínio interno e para a resposta; um limite baixo cortaria a resposta antes do texto em modelos que raciocinam.
+
+Limitação: essas escolhas foram feitas por boas práticas e conferidas apenas pelo resultado final. Não foi feito um estudo de ablação (por exemplo, remover a instrução de abstenção ou a numeração e medir o efeito); isso é um próximo passo natural.
+
+**Comparação entre modelos.** A Etapa 11.5 repete o mesmo experimento de geração com mais de um modelo, mudando apenas o gerador: as mesmas 40 perguntas do gabarito, as mesmas 5 perguntas de abstenção e exatamente os mesmos trechos recuperados para todos. Os modelos comparados são o Claude Sonnet 5.5 (principal), o Claude Sonnet 5 (versão anterior da mesma linha) e o Claude Haiku 4.5 (geração anterior, menor e mais barata), configuráveis em `MODELOS_COMPARACAO`. A fidelidade, a relevância e a abstenção são julgadas por um modelo diferente dos geradores (Claude Opus 5.5, `JUIZ_MODEL`), o mesmo para todos, o que reduz o viés de um modelo julgar as próprias respostas. Além da qualidade, são medidos latência, tokens e custo estimado por 1.000 respostas.
 
 **Avaliação.** A Etapa 11 do notebook reúne:
 
@@ -161,7 +198,7 @@ O `requirements.txt` fixa versões compatíveis entre si (`numpy<2`, `transforme
 
 ---
 
-Matrícula: 252.100.041
+Matrícula: [PREENCHER]
 
 Pontifícia Universidade Católica do Rio de Janeiro
 
